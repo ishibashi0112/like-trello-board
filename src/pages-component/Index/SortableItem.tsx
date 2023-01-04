@@ -1,11 +1,16 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Group } from "@mantine/core";
-import React from "react";
+import React, { FC } from "react";
 
 import { Item } from "../../type/BoardType";
 
-export const SortableItem = (props: { item: Item }) => {
+type Props = {
+  item: Item;
+  active?: boolean;
+};
+
+export const SortableItem: FC<Props> = (props) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: props.item.itemId });
 
@@ -16,7 +21,7 @@ export const SortableItem = (props: { item: Item }) => {
 
   return (
     <Group
-      className="bg-gray-500 p-1 rounded"
+      className={`${props.active ? "opacity-30" : ""} bg-gray-500  p-1 rounded`}
       ref={setNodeRef}
       style={style}
       {...attributes}

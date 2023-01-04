@@ -6,7 +6,7 @@ import type { Container } from "../../type/BoardType";
 import { SortableItem } from "./SortableItem";
 
 export const Droppable = (props: { container: Container }) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, active } = useDroppable({
     id: props.container.containerId,
   });
 
@@ -25,7 +25,11 @@ export const Droppable = (props: { container: Container }) => {
       <Card.Section className="" p="xs">
         <Stack spacing="sm">
           {props.container.items.map((item) => (
-            <SortableItem key={item.itemId} item={item} />
+            <SortableItem
+              key={item.itemId}
+              item={item}
+              active={active?.id === item.itemId}
+            />
           ))}
           <Button onClick={handleAddItem}>add item</Button>
         </Stack>
