@@ -1,16 +1,41 @@
 import { useDroppable } from "@dnd-kit/core";
-import { Button, Card, Stack, Text } from "@mantine/core";
-import React from "react";
+import { Button, Card, Group, Stack, Text } from "@mantine/core";
+import React, { FC } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import type { Container } from "../../type/BoardType";
 import { SortableItem } from "./SortableItem";
 
-export const Droppable = (props: { container: Container }) => {
+type Props = {
+  container: Container;
+  setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
+};
+
+export const Droppable: FC<Props> = (props) => {
   const { setNodeRef, active } = useDroppable({
     id: props.container.containerId,
   });
 
-  const handleAddItem: React.MouseEventHandler<HTMLButtonElement> = () => {};
+  const handleAddItem: React.MouseEventHandler<HTMLButtonElement> = () => {
+    props.setContainers((prevContainers) => {
+      const newContainers = prevContainers.map((prevContainer) => {
+        if (prevContainer.containerId === props.container.containerId) {
+          const newItems = [
+            ...prevContainer.items,
+            {
+              itemId: uuidv4(),
+              subTitle: `subTitleAdd`,
+            },
+          ];
+
+          const newContainer = { ...prevContainer, items: newItems };
+          return newContainer;
+        }
+        return prevContainer;
+      });
+      return newContainers;
+    });
+  };
 
   return (
     <Card
@@ -20,7 +45,12 @@ export const Droppable = (props: { container: Container }) => {
       w={300}
     >
       <Card.Section withBorder p="xs">
-        <Text weight={500}>{props.container.mainTitle}</Text>
+        <Group position="apart" align="center">
+          <Text weight={500}>{props.container.mainTitle}</Text>
+          <Button size="xs" onClick={handleAddItem}>
+            add item
+          </Button>
+        </Group>
       </Card.Section>
       <Card.Section className="" p="xs">
         <Stack spacing="sm">
@@ -31,7 +61,6 @@ export const Droppable = (props: { container: Container }) => {
               active={active?.id === item.itemId}
             />
           ))}
-          <Button onClick={handleAddItem}>add item</Button>
         </Stack>
       </Card.Section>
     </Card>

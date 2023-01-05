@@ -1,56 +1,35 @@
-import { DndContext, DragEndEvent, DragOverlay } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   DragOverEvent,
   DragStartEvent,
   UniqueIdentifier,
 } from "@dnd-kit/core/dist/types";
 import { SortableContext } from "@dnd-kit/sortable";
-import { Button, Group } from "@mantine/core";
+import { Button, Group, SimpleGrid } from "@mantine/core";
 import React, { FC, useCallback, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import type { Container, Item } from "../../type/BoardType";
 import { Droppable } from "./Droppable";
 import { SortableItem } from "./SortableItem";
 
-const initialContainer: Container[] = [
-  {
+const initialContainer: Container[] = [1, 2, 3, 4].map((_) => {
+  return {
     mainTitle: "testTitle",
-    containerId: "A",
-    items: [
-      { itemId: "1", subTitle: "subTitleA1" },
-      { itemId: "2", subTitle: "subTitleA2" },
-      { itemId: "3", subTitle: "subTitleA3" },
-    ],
-  },
-  {
-    mainTitle: "testTitle",
-    containerId: "B",
-    items: [
-      { itemId: "4", subTitle: "subTitleB1" },
-      { itemId: "5", subTitle: "subTitleB2" },
-      { itemId: "6", subTitle: "subTitleB3" },
-    ],
-  },
-  {
-    mainTitle: "testTitle",
-    containerId: "C",
-    items: [
-      { itemId: "7", subTitle: "subTitleC1" },
-      { itemId: "8", subTitle: "subTitleC2" },
-      { itemId: "9", subTitle: "subTitleC3" },
-    ],
-  },
-];
-
-const add = {
-  mainTitle: "testTitle",
-  containerId: "D",
-  items: [
-    { itemId: "10", subTitle: "subTitleD1" },
-    { itemId: "11", subTitle: "subTitleD2" },
-    { itemId: "12", subTitle: "subTitleD3" },
-  ],
-};
+    containerId: uuidv4(),
+    items: [1, 2, 3].map((_, index) => {
+      return { itemId: uuidv4(), subTitle: `subTitle${index + 1}` };
+    }),
+  };
+});
 
 const getItemIds = (container: Container): string[] => {
   const itemIds = container.items.map((item) => item.itemId);
@@ -153,38 +132,19 @@ export const Board: FC = () => {
   const [containers, setContainers] = useState<Container[]>(initialContainer);
   const [activeItem, setActiveItem] = useState<Item | null>(null);
 
-  const handleDragStart = useCallback((event: DragStartEvent): void => {
-    const item = getItemByActiveId(containers, event.active.id);
-    setActiveItem(item);
-  }, []);
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor)
+  );
 
-  const handleDragEnd = useCallback((event: DragEndEvent): void => {
-    const { active, over } = event;
-
-    if (!over) {
-      return;
-    }
-    console.log(active.id, over.id);
-
-    if (active.id !== over.id) {
-      console.log(over.id);
-      // setContainers((prevContainers) => {
-      //   prevContainers.map((prevContainer) => {
-
-      //   });
-      // });
-
-      // setContainers((prevContainers) => {
-      //   const a = prevContainers.map((container) => {
-      //     const oldIndex = container.items.indexOf(Number(active.id));
-      //     const newIndex = container.items.indexOf(Number(over.id));
-      //   });
-
-      //   // return [];
-
-      // });
-    }
-  }, []);
+  const handleDragStart = useCallback(
+    (event: DragStartEvent): void => {
+      const item = getItemByActiveId(containers, event.active.id);
+      setActiveItem(item);
+    },
+    [containers]
+  );
 
   const handleDragOver = useCallback(
     (event: DragOverEvent): void => {
@@ -197,30 +157,40 @@ export const Board: FC = () => {
     [containers]
   );
 
-  const handleClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    setContainers((prev) => [...prev, add]);
+  const handleAddContainer: React.MouseEventHandler<HTMLButtonElement> = () => {
+    setContainers((prev) => [
+      ...prev,
+      { mainTitle: "testTitle", containerId: uuidv4(), items: [] },
+    ]);
   };
 
   return (
     <div>
-      <Group position="right">
-        <Button onClick={handleClick}>add container</Button>
+      <Group className="mb-10" position="right">
+        <Button onClick={handleAddContainer}>add container</Button>
       </Group>
       <DndContext
         onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
+        sensors={sensors}
       >
-        <Group align="start">
+        <SimpleGrid
+          cols={3}
+          breakpoints={[
+            { maxWidth: 1050, cols: 3, spacing: "md" },
+            { maxWidth: 960, cols: 2, spacing: "sm" },
+            { maxWidth: 700, cols: 1, spacing: "sm" },
+          ]}
+        >
           {containers.map((container) => (
             <SortableContext
-              key={container.containerId as string}
+              key={container.containerId}
               items={getItemIds(container)}
             >
-              <Droppable container={container} />
+              <Droppable container={container} setContainers={setContainers} />
             </SortableContext>
           ))}
-        </Group>
+        </SimpleGrid>
 
         <DragOverlay>
           {activeItem ? <SortableItem item={activeItem} /> : null}

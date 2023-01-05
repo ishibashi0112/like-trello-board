@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Group } from "@mantine/core";
+import { Group, Text, ThemeIcon } from "@mantine/core";
+import { IconGripVertical } from "@tabler/icons";
 import React, { FC } from "react";
 
 import { Item } from "../../type/BoardType";
@@ -24,10 +25,18 @@ export const SortableItem: FC<Props> = (props) => {
       className={`${props.active ? "opacity-30" : ""} bg-gray-500  p-1 rounded`}
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      align="center"
     >
-      {props.item.subTitle}
+      <ThemeIcon
+        {...attributes}
+        {...listeners}
+        className="cursor-grab hover:opacity-70 "
+        variant="default"
+        color="gray"
+      >
+        <IconGripVertical size={14} />
+      </ThemeIcon>
+      <Text>{props.item.subTitle}</Text>
     </Group>
   );
 };
